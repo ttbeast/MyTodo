@@ -1,0 +1,56 @@
+﻿@page "/todoes"
+
+@inject HttpClient _client
+@inject NavigationManager _navmanager
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+
+<h3>To Do List</h3>
+
+@if ( MyToDoLists == null )
+{
+    <div class="alert alert-info" > Loading..</div>
+}
+else
+{
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in MyToDoLists  )
+            {
+                <tr>
+                    <th>@item.Title</th>
+                    <th>@item.Description</th>
+                    <th>
+                        <button class="btn btn-primary" @onclick="@(()=> Edit(@item.Id))">Edit</button>
+                    </th>
+                </tr>
+                
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+
+
+    private List<ToDoList> MyToDoLists;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(500);
+
+        MyToDoLists = await _client.GetFromJsonAsync<List<ToDoList>>("api/todolists");
+    }
+
+    private void Edit(int id)
+    {
+        _navmanager.NavigateTo($"edittodo/{id}");
+    }
+}

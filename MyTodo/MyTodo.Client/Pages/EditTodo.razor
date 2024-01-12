@@ -1,0 +1,77 @@
+﻿@page "/edittodo"
+@page "/edittodo/{id:int}"
+
+@inject HttpClient _client
+@inject NavigationManager _navmanager
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+
+
+<h3>Edit To Do</h3>
+
+@if ( mytask == null )
+{
+    <h3> Loading task...</h3>
+}
+else
+{
+    <EditForm Model="mytask" OnSubmit="HandleSubmit">
+
+        <div>
+            <label for="title">Title</label>
+            <InputText id="title" @bind-Value="mytask.Title" class="form-control" />
+        </div>
+        <div>
+            <label for="description">Description</label>
+            <InputText id="description" @bind-Value="mytask.Description" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+
+    </EditForm>
+}
+
+
+@code {
+
+    [Parameter]
+    public int? Id { get; set; }
+
+    public ToDoList mytask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != null)
+        {
+            var result = await _client.GetFromJsonAsync<ToDoList>($"api/todolists/{(int)Id}");
+
+            if (result != null)
+            {
+                mytask = result;
+            }
+        }
+    }
+
+    private async void HandleSubmit()
+    {
+        if ( Id != null )
+        {
+            var result = await _client.PutAsJsonAsync($"api/todolists/{(int)Id}", mytask);
+            //somehow the task below not working
+            //mytask = await result.Content.ReadFromJsonAsync<ToDoList>(); 
+
+            //this is working
+            //await OnInitializedAsync();
+
+            _navmanager.NavigateTo("/todoes");
+
+        }
+        else
+        {
+            var result = await _client.PostAsJsonAsync("api/todolists", mytask);
+            //mytask = await result.Content.ReadFromJsonAsync<ToDoList>();
+            //await OnInitializedAsync();
+
+            _navmanager.NavigateTo("/todoes");
+        }
+    }
+}
